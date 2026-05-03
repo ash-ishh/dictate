@@ -35,27 +35,21 @@ local selectedModel = "ifw_mlx_tiny"
 local toggleRecording
 local chooseModel
 
-local function loadIcon(fileName, template)
-  local image = hs.image.imageFromPath(projectDir .. "/assets/" .. fileName)
-  if image and template then image:setTemplate(true) end
-  return image
-end
-
-local idleIcon = loadIcon("dictate-idle.png", true)
-local recordingIcon = loadIcon("dictate-recording.png", false)
+local idleIconPath = projectDir .. "/assets/dictate-idle.png"
+local recordingIconPath = projectDir .. "/assets/dictate-recording.png"
 
 local function setIdleStatus()
-  if idleIcon then menubar:setIcon(idleIcon) end
+  if hs.fs.attributes(idleIconPath) then menubar:setIcon(idleIconPath, true) end
   menubar:setTitle("Dictate")
 end
 
 local function setRecordingStatus()
-  if recordingIcon then menubar:setIcon(recordingIcon) end
+  if hs.fs.attributes(recordingIconPath) then menubar:setIcon(recordingIconPath, false) end
   menubar:setTitle("REC")
 end
 
 local function setTranscribingStatus()
-  if idleIcon then menubar:setIcon(idleIcon) end
+  if hs.fs.attributes(idleIconPath) then menubar:setIcon(idleIconPath, true) end
   menubar:setTitle("…")
 end
 
@@ -247,4 +241,9 @@ rebuildMenu()
 menubar:setClickCallback(toggleRecording)
 
 hs.hotkey.bind({"cmd"}, "S", toggleRecording)
+-- Also bind Ctrl+S for testing/backup because Cmd+S can conflict with app Save shortcuts.
+hs.hotkey.bind({"ctrl"}, "S", toggleRecording)
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", chooseModel)
+
+notify("Dictate", "Loaded. Press Cmd+S or Ctrl+S to record.")
+hs.alert.show("Dictate loaded: Cmd+S or Ctrl+S")
