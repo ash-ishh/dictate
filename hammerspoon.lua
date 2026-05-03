@@ -165,10 +165,11 @@ end
 
 local function transcribeAndPaste()
   setTranscribingStatus()
-  notify("Dictate", "Transcribing with " .. selectedModel .. "...")
+  local modelForRun = selectedModel
+  notify("Dictate", "Transcribing with " .. modelForRun .. "...")
 
   local command = string.format([[cd "%s" && "%s" run --python 3.12 dictate transcribe "%s" --model "%s" --output-json "%s" --output-text "%s"]],
-    projectDir, uvPath, audioFile, selectedModel, jsonFile, txtFile)
+    projectDir, uvPath, audioFile, modelForRun, jsonFile, txtFile)
 
   hs.task.new("/bin/zsh", function(exitCode, stdOut, stdErr)
     setIdleStatus()
@@ -226,14 +227,16 @@ end
 
 chooseModel = function()
   local choices = {
-    {text = "ifw_mlx_tiny", subText = "Fastest first test"},
-    {text = "ifw_mlx_large_v3", subText = "More accurate Whisper Large v3"},
-    {text = "ifw_mlx_parakeet", subText = "Parakeet MLX"},
+    {text = "ifw_mlx_tiny", subText = selectedModel == "ifw_mlx_tiny" and "✓ Fastest first test" or "Fastest first test"},
+    {text = "ifw_mlx_large_v3", subText = selectedModel == "ifw_mlx_large_v3" and "✓ More accurate Whisper Large v3" or "More accurate Whisper Large v3"},
+    {text = "ifw_mlx_parakeet", subText = selectedModel == "ifw_mlx_parakeet" and "✓ Parakeet MLX" or "Parakeet MLX"},
   }
   local chooser = hs.chooser.new(function(choice)
     if choice then
       selectedModel = choice.text
+      rebuildMenu()
       notify("Dictate", "Selected " .. selectedModel)
+      hs.alert.show("Dictate model: " .. selectedModel)
     end
   end)
   chooser:choices(choices)
