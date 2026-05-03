@@ -133,17 +133,6 @@ local function rebuildMenu()
       end
     end,
   })
-  table.insert(menu, {
-    title = "Reveal transcript file",
-    fn = function()
-      if hs.fs.attributes(txtFile) then
-        hs.execute("open -R " .. string.format("%q", txtFile))
-      else
-        notify("Dictate", "No transcript file found")
-      end
-    end,
-  })
-
   if #transcriptHistory > 0 then
     table.insert(menu, { title = "-" })
     table.insert(menu, { title = "Recent transcripts", disabled = true })
