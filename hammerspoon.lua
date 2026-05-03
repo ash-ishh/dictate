@@ -3,6 +3,7 @@
 -- Hotkey: Cmd+S. Menu button: custom Dictate icon / REC.
 
 local menubar = hs.menubar.new()
+_G.dictateMenubar = menubar
 local isRecording = false
 local ffmpegTask = nil
 local targetApp = nil
@@ -44,12 +45,8 @@ local idleIcon = loadIcon("dictate-idle.png", true)
 local recordingIcon = loadIcon("dictate-recording.png", false)
 
 local function setIdleStatus()
-  if idleIcon then
-    menubar:setIcon(idleIcon)
-    menubar:setTitle("")
-  else
-    menubar:setTitle("Dictate")
-  end
+  if idleIcon then menubar:setIcon(idleIcon) end
+  menubar:setTitle("Dictate")
 end
 
 local function setRecordingStatus()
