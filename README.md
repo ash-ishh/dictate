@@ -192,6 +192,8 @@ REC: recording
 D…: transcribing
 ```
 
+Recent transcripts are available from the `D` menu-bar menu. Selecting a transcript copies it back to the clipboard. Dictate keeps the last five transcripts for the current Hammerspoon session.
+
 Because `Cmd + S` is also the standard Save shortcut, change the binding in `hammerspoon.lua` if you do not want Dictate to intercept it globally.
 
 ## Microphone device

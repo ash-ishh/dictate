@@ -7,6 +7,8 @@ local isRecording = false
 local ffmpegTask = nil
 local targetApp = nil
 local recordingAlert = nil
+local transcriptHistory = {}
+local maxHistoryItems = 5
 
 local source = debug.getinfo(1, "S").source
 local projectDir = source:sub(1, 1) == "@" and source:sub(2):match("(.+)/[^/]+$") or "/Users/ashish/Projects/MLX/whisper-exploration/dictate"
@@ -29,6 +31,8 @@ local home = os.getenv("HOME") or ""
 local ffmpegPath = firstExistingPath({"/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"})
 local uvPath = firstExistingPath({home .. "/.local/bin/uv", "/opt/homebrew/bin/uv", "/usr/local/bin/uv"})
 local selectedModel = "ifw_mlx_tiny"
+local toggleRecording
+local chooseModel
 
 local function notify(title, text)
   hs.notify.new({ title = title, informativeText = text }):send()
@@ -66,6 +70,58 @@ local function readFile(path)
   return text
 end
 
+local function shortText(text, maxLen)
+  text = string.gsub(text or "", "%s+", " ")
+  if string.len(text) <= maxLen then return text end
+  return string.sub(text, 1, maxLen - 1) .. "…"
+end
+
+local function rebuildMenu()
+  local menu = {
+    { title = "Start/stop recording", fn = toggleRecording },
+    { title = "Choose model", fn = chooseModel },
+    { title = "Current model: " .. selectedModel, disabled = true },
+  }
+
+  if #transcriptHistory > 0 then
+    table.insert(menu, { title = "-" })
+    table.insert(menu, { title = "Recent transcripts", disabled = true })
+    for i, item in ipairs(transcriptHistory) do
+      table.insert(menu, {
+        title = i .. ". " .. shortText(item.text, 70),
+        fn = function()
+          hs.pasteboard.setContents(item.text)
+          notify("Dictate", "Transcript copied")
+        end,
+      })
+    end
+    table.insert(menu, {
+      title = "Clear transcript history",
+      fn = function()
+        transcriptHistory = {}
+        rebuildMenu()
+      end,
+    })
+  end
+
+  menubar:setMenu(menu)
+end
+
+local function addTranscriptToHistory(text)
+  text = string.gsub(text or "", "^%s+", "")
+  text = string.gsub(text, "%s+$", "")
+  if text == "" then return end
+
+  table.insert(transcriptHistory, 1, {
+    text = text,
+    time = os.date("%H:%M:%S"),
+  })
+  while #transcriptHistory > maxHistoryItems do
+    table.remove(transcriptHistory)
+  end
+  rebuildMenu()
+end
+
 local function pasteText(text)
   text = string.gsub(text or "", "^%s+", "")
   text = string.gsub(text, "%s+$", "")
@@ -74,6 +130,7 @@ local function pasteText(text)
     return
   end
 
+  addTranscriptToHistory(text)
   hs.pasteboard.setContents(text)
   if targetApp then targetApp:activate() end
   hs.timer.doAfter(0.2, function()
@@ -139,11 +196,11 @@ local function stopRecording()
   hs.timer.doAfter(0.7, transcribeAndPaste)
 end
 
-local function toggleRecording()
+toggleRecording = function()
   if isRecording then stopRecording() else startRecording() end
 end
 
-local function chooseModel()
+chooseModel = function()
   local choices = {
     {text = "ifw_mlx_tiny", subText = "Fastest first test"},
     {text = "ifw_mlx_large_v3", subText = "More accurate Whisper Large v3"},
@@ -161,11 +218,7 @@ end
 
 menubar:setTitle("D")
 menubar:setTooltip("Dictate")
-menubar:setMenu({
-  { title = "Start/stop recording", fn = toggleRecording },
-  { title = "Choose model", fn = chooseModel },
-  { title = "Current model: " .. selectedModel, disabled = true },
-})
+rebuildMenu()
 menubar:setClickCallback(toggleRecording)
 
 hs.hotkey.bind({"cmd"}, "S", toggleRecording)
