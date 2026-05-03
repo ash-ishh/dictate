@@ -42,7 +42,14 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "backend": "insanely_fast_whisper_pr273",
             "repo": str(DEFAULT_IFW_REPO),
             "mlx_family": "whisper",
-            "model_name": "mlx-community/whisper-large-v3",
+            "model_name": "mlx-community/whisper-large-v3-mlx",
+            "extra_args": [],
+        },
+        "ifw_mlx_turbo": {
+            "backend": "insanely_fast_whisper_pr273",
+            "repo": str(DEFAULT_IFW_REPO),
+            "mlx_family": "whisper",
+            "model_name": "mlx-community/whisper-large-v3-turbo",
             "extra_args": [],
         },
         "ifw_mlx_parakeet": {

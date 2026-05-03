@@ -250,6 +250,7 @@ chooseModel = function()
   local choices = {
     {text = "ifw_mlx_tiny", subText = selectedModel == "ifw_mlx_tiny" and "✓ Fastest first test" or "Fastest first test"},
     {text = "ifw_mlx_large_v3", subText = selectedModel == "ifw_mlx_large_v3" and "✓ More accurate Whisper Large v3" or "More accurate Whisper Large v3"},
+    {text = "ifw_mlx_turbo", subText = selectedModel == "ifw_mlx_turbo" and "✓ Faster Large v3 Turbo" or "Faster Large v3 Turbo"},
     {text = "ifw_mlx_parakeet", subText = selectedModel == "ifw_mlx_parakeet" and "✓ Parakeet MLX" or "Parakeet MLX"},
   }
   local chooser = hs.chooser.new(function(choice)
