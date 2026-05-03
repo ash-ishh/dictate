@@ -101,25 +101,83 @@ uv run --python 3.12 dictate transcribe /path/to/audio.wav \
 
 ## Hammerspoon hotkey setup
 
-Add this to `~/.hammerspoon/init.lua`:
+### 1. Install and open Hammerspoon
+
+```bash
+brew install --cask hammerspoon
+open -a Hammerspoon
+```
+
+### 2. Create the Hammerspoon config file
+
+```bash
+mkdir -p ~/.hammerspoon
+nano ~/.hammerspoon/init.lua
+```
+
+Add this line, replacing the path with your Dictate checkout path:
 
 ```lua
 dofile("/path/to/dictate/hammerspoon.lua")
 ```
 
-Reload Hammerspoon.
+Example:
 
-Grant permissions:
+```lua
+dofile("/Users/ashish/Projects/MLX/whisper-exploration/dictate/hammerspoon.lua")
+```
+
+### 3. Reload Hammerspoon
+
+From the Hammerspoon menu-bar icon, choose:
+
+```text
+Reload Config
+```
+
+Or reload from the terminal:
+
+```bash
+osascript -e 'tell application "Hammerspoon" to execute lua code "hs.reload()"'
+```
+
+### 4. Grant macOS permissions
+
+Enable Hammerspoon in:
 
 ```text
 System Settings → Privacy & Security → Accessibility → Hammerspoon
+```
+
+This lets Hammerspoon paste the transcript into the focused app.
+
+Enable Hammerspoon in:
+
+```text
 System Settings → Privacy & Security → Microphone → Hammerspoon
 ```
 
-Default controls:
+This lets Hammerspoon record microphone audio. If Hammerspoon does not appear in the Microphone list, trigger recording once with the hotkey or menu-bar icon so macOS prompts for permission.
+
+### 5. Use Dictate
+
+Click into any text input, then press:
 
 ```text
-Cmd + S: start/stop recording
+Cmd + S
+```
+
+Speak, then press again:
+
+```text
+Cmd + S
+```
+
+Dictate stops recording, transcribes the audio, and pastes the transcript into the app that was focused when recording started.
+
+Other controls:
+
+```text
 Cmd + Option + Ctrl + M: choose model
 Menu bar microphone icon: start/stop recording
 ```
