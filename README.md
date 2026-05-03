@@ -187,12 +187,11 @@ Menu bar "D" item: start/stop recording
 Menu-bar states:
 
 ```text
-Dictate icon: idle
-REC: recording
-…: transcribing
+Dictate waveform icon: idle/transcribing
+Red record icon: recording
 ```
 
-The menu-bar artwork is stored in `assets/` as SVG sources plus PNG files used by Hammerspoon.
+The menu-bar artwork is stored in `assets/` as SVG sources plus 22×22 PNG files used by Hammerspoon.
 
 Recent transcripts are available from the Dictate menu-bar menu. Selecting a transcript copies it back to the clipboard. Dictate keeps the last five transcripts for the current Hammerspoon session.
 

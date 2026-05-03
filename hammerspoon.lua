@@ -40,17 +40,17 @@ local recordingIconPath = projectDir .. "/assets/dictate-recording.png"
 
 local function setIdleStatus()
   if hs.fs.attributes(idleIconPath) then menubar:setIcon(idleIconPath, true) end
-  menubar:setTitle("Dictate")
+  menubar:setTitle("")
 end
 
 local function setRecordingStatus()
   if hs.fs.attributes(recordingIconPath) then menubar:setIcon(recordingIconPath, false) end
-  menubar:setTitle("REC")
+  menubar:setTitle("")
 end
 
 local function setTranscribingStatus()
   if hs.fs.attributes(idleIconPath) then menubar:setIcon(idleIconPath, true) end
-  menubar:setTitle("…")
+  menubar:setTitle("")
 end
 
 local function notify(title, text)
@@ -245,5 +245,6 @@ hs.hotkey.bind({"cmd"}, "S", toggleRecording)
 hs.hotkey.bind({"ctrl"}, "S", toggleRecording)
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", chooseModel)
 
-notify("Dictate", "Loaded. Press Cmd+S or Ctrl+S to record.")
-hs.alert.show("Dictate loaded: Cmd+S or Ctrl+S")
+-- Uncomment while debugging config loading:
+-- notify("Dictate", "Loaded. Press Cmd+S or Ctrl+S to record.")
+-- hs.alert.show("Dictate loaded: Cmd+S or Ctrl+S")
