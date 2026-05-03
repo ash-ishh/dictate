@@ -59,23 +59,24 @@ The user config is stored at:
 
 ## Transcription backend
 
-The initial backend uses the MLX backend from `insanely-fast-whisper` PR #273.
+The initial backend uses the MLX backend from `insanely-fast-whisper` PR #273. Until that backend is available in a released package, Dictate runs it from a local checkout.
 
-The default config expects an `insanely-fast-whisper` checkout at:
-
-```text
-~/Projects/MLX/whisper-exploration/insanely-fast-whisper
-```
-
-That checkout should be on the PR branch:
+Set up the checkout:
 
 ```bash
-cd ~/Projects/MLX/whisper-exploration/insanely-fast-whisper
+git clone https://github.com/Vaibhavs10/insanely-fast-whisper.git
+cd insanely-fast-whisper
 git fetch origin pull/273/head:pr-273
 git checkout pr-273
 ```
 
-If your checkout is somewhere else, edit the `repo` fields in:
+When `dictate init-config` creates `~/.dictate/config.json`, it chooses the checkout path in this order:
+
+1. `DICTATE_IFW_REPO` environment variable, if set.
+2. A sibling directory named `insanely-fast-whisper` next to the Dictate checkout.
+3. The development fallback path used by this workspace.
+
+If needed, edit the generated `repo` fields in:
 
 ```text
 ~/.dictate/config.json

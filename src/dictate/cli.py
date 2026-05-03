@@ -10,7 +10,22 @@ from typing import Any
 
 APP_DIR = Path.home() / ".dictate"
 CONFIG_PATH = APP_DIR / "config.json"
-DEFAULT_IFW_REPO = Path.home() / "Projects/MLX/whisper-exploration/insanely-fast-whisper"
+
+
+def default_ifw_repo() -> Path:
+    """Return the local insanely-fast-whisper checkout used by the experimental PR backend."""
+    if env_path := os.environ.get("DICTATE_IFW_REPO"):
+        return Path(env_path).expanduser()
+
+    project_root = Path(__file__).resolve().parents[2]
+    sibling_checkout = project_root.parent / "insanely-fast-whisper"
+    if sibling_checkout.exists():
+        return sibling_checkout
+
+    return Path.home() / "Projects" / "MLX" / "whisper-exploration" / "insanely-fast-whisper"
+
+
+DEFAULT_IFW_REPO = default_ifw_repo()
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "default_model": "ifw_mlx_tiny",
