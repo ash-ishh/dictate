@@ -6,6 +6,7 @@ local menubar = hs.menubar.new()
 local isRecording = false
 local ffmpegTask = nil
 local targetApp = nil
+local recordingAlert = nil
 
 local source = debug.getinfo(1, "S").source
 local projectDir = source:sub(1, 1) == "@" and source:sub(2):match("(.+)/[^/]+$") or "/Users/ashish/Projects/MLX/whisper-exploration/dictate"
@@ -31,6 +32,30 @@ local selectedModel = "ifw_mlx_tiny"
 
 local function notify(title, text)
   hs.notify.new({ title = title, informativeText = text }):send()
+end
+
+local function showRecordingIndicator()
+  if recordingAlert then hs.alert.closeSpecific(recordingAlert) end
+  recordingAlert = hs.alert.show(
+    "🔴 Dictate recording — press Cmd+S to stop",
+    {
+      textSize = 22,
+      radius = 12,
+      fillColor = { red = 0.75, green = 0.05, blue = 0.05, alpha = 0.90 },
+      textColor = { white = 1, alpha = 1 },
+      strokeColor = { white = 1, alpha = 0.25 },
+      strokeWidth = 2,
+    },
+    hs.screen.mainScreen(),
+    999999
+  )
+end
+
+local function hideRecordingIndicator()
+  if recordingAlert then
+    hs.alert.closeSpecific(recordingAlert)
+    recordingAlert = nil
+  end
 end
 
 local function readFile(path)
@@ -98,7 +123,8 @@ local function startRecording()
 
   isRecording = true
   menubar:setTitle("🔴")
-  notify("Whisper", "Recording started")
+  showRecordingIndicator()
+  notify("Dictate", "Recording started")
 end
 
 local function stopRecording()
@@ -108,7 +134,8 @@ local function stopRecording()
   end
   isRecording = false
   menubar:setTitle("⏳")
-  notify("Whisper", "Recording stopped")
+  hideRecordingIndicator()
+  notify("Dictate", "Recording stopped")
   hs.timer.doAfter(0.7, transcribeAndPaste)
 end
 

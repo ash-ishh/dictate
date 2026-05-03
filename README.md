@@ -173,7 +173,9 @@ Speak, then press again:
 Cmd + S
 ```
 
-Dictate stops recording, transcribes the audio, and pastes the transcript into the app that was focused when recording started.
+A red on-screen indicator appears while recording is active.
+
+Dictate stops recording, hides the indicator, transcribes the audio, and pastes the transcript into the app that was focused when recording started.
 
 Other controls:
 
