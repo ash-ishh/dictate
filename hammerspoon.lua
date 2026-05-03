@@ -8,6 +8,7 @@ local isRecording = false
 local ffmpegTask = nil
 local targetApp = nil
 local recordingAlert = nil
+local statusCanvas = nil
 local transcriptHistory = {}
 local maxHistoryItems = 5
 
@@ -69,28 +70,65 @@ local function notify(title, text)
   hs.notify.new({ title = title, informativeText = text }):send()
 end
 
-local function showRecordingIndicator()
-  if recordingAlert then hs.alert.closeSpecific(recordingAlert) end
-  recordingAlert = hs.alert.show(
-    "🔴 Dictate recording — press Cmd+S to stop",
-    {
-      textSize = 22,
-      radius = 12,
-      fillColor = { red = 0.75, green = 0.05, blue = 0.05, alpha = 0.90 },
-      textColor = { white = 1, alpha = 1 },
-      strokeColor = { white = 1, alpha = 0.25 },
-      strokeWidth = 2,
-    },
-    hs.screen.mainScreen(),
-    999999
-  )
-end
-
-local function hideRecordingIndicator()
+local function hideStatusBanner()
   if recordingAlert then
     hs.alert.closeSpecific(recordingAlert)
     recordingAlert = nil
   end
+  if statusCanvas then
+    statusCanvas:delete()
+    statusCanvas = nil
+  end
+end
+
+local function showStatusBanner(text, mode, duration)
+  hideStatusBanner()
+
+  local screenFrame = hs.screen.mainScreen():frame()
+  local width = 300
+  local height = 42
+  local frame = {
+    x = screenFrame.x + (screenFrame.w - width) / 2,
+    y = screenFrame.y + 56,
+    w = width,
+    h = height,
+  }
+  local fill = mode == "recording"
+    and { red = 1.0, green = 0.23, blue = 0.19, alpha = 0.96 }
+    or { red = 0.12, green = 0.12, blue = 0.13, alpha = 0.88 }
+
+  statusCanvas = hs.canvas.new(frame)
+  statusCanvas:level(hs.canvas.windowLevels.overlay)
+  statusCanvas:behavior({ "canJoinAllSpaces", "transient", "ignoresCycle" })
+  statusCanvas:appendElements(
+    {
+      type = "rectangle",
+      action = "fill",
+      roundedRectRadii = { xRadius = 12, yRadius = 12 },
+      fillColor = fill,
+    },
+    {
+      type = "text",
+      text = text,
+      textSize = 15,
+      textAlignment = "center",
+      textColor = { white = 1, alpha = 1 },
+      frame = { x = 12, y = 10, w = width - 24, h = 22 },
+    }
+  )
+  statusCanvas:show()
+
+  if duration then
+    hs.timer.doAfter(duration, hideStatusBanner)
+  end
+end
+
+local function showRecordingIndicator()
+  showStatusBanner("Recording — Cmd+S to stop", "recording")
+end
+
+local function hideRecordingIndicator()
+  hideStatusBanner()
 end
 
 local function readFile(path)
@@ -192,6 +230,7 @@ end
 local function transcribeAndPaste()
   setTranscribingStatus()
   local modelForRun = selectedModel
+  showStatusBanner("Transcribing with " .. modelLabel(modelForRun), "info")
   notify("Dictate", "Transcribing with " .. modelForRun .. "...")
 
   local command = string.format([[cd "%s" && "%s" run --python 3.12 dictate transcribe "%s" --model "%s" --output-json "%s" --output-text "%s"]],
@@ -199,6 +238,7 @@ local function transcribeAndPaste()
 
   hs.task.new("/bin/zsh", function(exitCode, stdOut, stdErr)
     setIdleStatus()
+    hideStatusBanner()
     if exitCode == 0 then
       pasteText(readFile(txtFile) or stdOut)
     else
@@ -261,18 +301,28 @@ end
 selectModel = function(key)
   selectedModel = key
   rebuildMenu()
-  hs.alert.show("Model: " .. modelLabel(key), 0.8)
+  showStatusBanner("Model: " .. modelLabel(key), "info", 0.9)
 end
 
 chooseModel = function()
-  for index, model in ipairs(modelOptions) do
-    if model.key == selectedModel then
-      local nextModel = modelOptions[(index % #modelOptions) + 1]
-      selectModel(nextModel.key)
-      return
-    end
+  local choices = {}
+  for _, model in ipairs(modelOptions) do
+    local active = model.key == selectedModel
+    table.insert(choices, {
+      text = (active and "✓ " or "") .. model.label,
+      subText = model.detail,
+      modelKey = model.key,
+    })
   end
-  selectModel(modelOptions[1].key)
+
+  local chooser = hs.chooser.new(function(choice)
+    if choice then selectModel(choice.modelKey) end
+  end)
+  chooser:placeholderText("Select Dictate model")
+  chooser:searchSubText(true)
+  chooser:rows(#choices)
+  chooser:choices(choices)
+  chooser:show()
 end
 
 setIdleStatus()

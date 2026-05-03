@@ -180,7 +180,7 @@ Dictate stops recording, hides the indicator, transcribes the audio, and pastes 
 Other controls:
 
 ```text
-Cmd + Option + Ctrl + M: cycle model
+Cmd + Option + Ctrl + M: open model picker
 Menu bar icon: start/stop recording
 ```
 
@@ -248,7 +248,7 @@ uv run --python 3.12 dictate transcribe /path/to/audio.wav --model ifw_mlx_large
 Switch models from Hammerspoon:
 
 ```text
-Click the menu-bar icon and select a model, or press Cmd + Option + Ctrl + M to cycle models.
+Click the menu-bar icon and select a model, or press Cmd + Option + Ctrl + M to open the model picker.
 ```
 
 ## Architecture
