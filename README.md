@@ -181,7 +181,15 @@ Other controls:
 
 ```text
 Cmd + Option + Ctrl + M: choose model
-Menu bar microphone icon: start/stop recording
+Menu bar "D" item: start/stop recording
+```
+
+Menu-bar states:
+
+```text
+D: idle
+REC: recording
+D…: transcribing
 ```
 
 Because `Cmd + S` is also the standard Save shortcut, change the binding in `hammerspoon.lua` if you do not want Dictate to intercept it globally.

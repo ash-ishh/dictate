@@ -1,6 +1,6 @@
 -- Dictate Hammerspoon integration.
 -- Install with: dofile("/path/to/dictate/hammerspoon.lua")
--- Hotkey: Cmd+S. Menu button: 🎙 / 🔴.
+-- Hotkey: Cmd+S. Menu button: D / REC.
 
 local menubar = hs.menubar.new()
 local isRecording = false
@@ -70,7 +70,7 @@ local function pasteText(text)
   text = string.gsub(text or "", "^%s+", "")
   text = string.gsub(text, "%s+$", "")
   if text == "" then
-    notify("Whisper", "Transcript was empty")
+    notify("Dictate", "Transcript was empty")
     return
   end
 
@@ -79,23 +79,23 @@ local function pasteText(text)
   hs.timer.doAfter(0.2, function()
     hs.eventtap.keyStroke({"cmd"}, "v")
   end)
-  notify("Whisper", "Transcript pasted")
+  notify("Dictate", "Transcript pasted")
 end
 
 local function transcribeAndPaste()
-  menubar:setTitle("⏳")
-  notify("Whisper", "Transcribing with " .. selectedModel .. "...")
+  menubar:setTitle("D…")
+  notify("Dictate", "Transcribing with " .. selectedModel .. "...")
 
   local command = string.format([[cd "%s" && "%s" run --python 3.12 dictate transcribe "%s" --model "%s" --output-json "%s" --output-text "%s"]],
     projectDir, uvPath, audioFile, selectedModel, jsonFile, txtFile)
 
   hs.task.new("/bin/zsh", function(exitCode, stdOut, stdErr)
-    menubar:setTitle("🎙")
+    menubar:setTitle("D")
     if exitCode == 0 then
       pasteText(readFile(txtFile) or stdOut)
     else
       local err = stdErr or stdOut or "transcription failed"
-      notify("Whisper error", string.sub(err, 1, 500))
+      notify("Dictate error", string.sub(err, 1, 500))
       local f = io.open(logFile, "w")
       if f then
         f:write("STDOUT:\n" .. (stdOut or "") .. "\nSTDERR:\n" .. (stdErr or ""))
@@ -122,7 +122,7 @@ local function startRecording()
   ffmpegTask:start()
 
   isRecording = true
-  menubar:setTitle("🔴")
+  menubar:setTitle("REC")
   showRecordingIndicator()
   notify("Dictate", "Recording started")
 end
@@ -133,7 +133,7 @@ local function stopRecording()
     ffmpegTask = nil
   end
   isRecording = false
-  menubar:setTitle("⏳")
+  menubar:setTitle("D…")
   hideRecordingIndicator()
   notify("Dictate", "Recording stopped")
   hs.timer.doAfter(0.7, transcribeAndPaste)
@@ -152,14 +152,14 @@ local function chooseModel()
   local chooser = hs.chooser.new(function(choice)
     if choice then
       selectedModel = choice.text
-      notify("Whisper", "Selected " .. selectedModel)
+      notify("Dictate", "Selected " .. selectedModel)
     end
   end)
   chooser:choices(choices)
   chooser:show()
 end
 
-menubar:setTitle("🎙")
+menubar:setTitle("D")
 menubar:setTooltip("Dictate")
 menubar:setMenu({
   { title = "Start/stop recording", fn = toggleRecording },
