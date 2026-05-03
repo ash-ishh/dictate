@@ -35,21 +35,32 @@ local selectedModel = "ifw_mlx_tiny"
 local toggleRecording
 local chooseModel
 
-local idleIconPath = projectDir .. "/assets/dictate-idle.png"
-local recordingIconPath = projectDir .. "/assets/dictate-recording.png"
+local idleIconPath = projectDir .. "/assets/dictate-idle.pdf"
+local recordingIconPath = projectDir .. "/assets/dictate-recording.pdf"
+
+local function menuIcon(path, template)
+  local image = hs.image.imageFromPath(path)
+  if not image then return nil end
+  image:setSize({ w = 18, h = 18 })
+  image:setTemplate(template)
+  return image
+end
+
+local idleIcon = menuIcon(idleIconPath, true)
+local recordingIcon = menuIcon(recordingIconPath, false)
 
 local function setIdleStatus()
-  if hs.fs.attributes(idleIconPath) then menubar:setIcon(idleIconPath, true) end
+  if idleIcon then menubar:setIcon(idleIcon) end
   menubar:setTitle("")
 end
 
 local function setRecordingStatus()
-  if hs.fs.attributes(recordingIconPath) then menubar:setIcon(recordingIconPath, false) end
+  if recordingIcon then menubar:setIcon(recordingIcon) end
   menubar:setTitle("")
 end
 
 local function setTranscribingStatus()
-  if hs.fs.attributes(idleIconPath) then menubar:setIcon(idleIconPath, true) end
+  if idleIcon then menubar:setIcon(idleIcon) end
   menubar:setTitle("")
 end
 
