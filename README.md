@@ -1,4 +1,4 @@
-# Whisper Dictation
+# Dictate
 
 A small Mac dictation project with swappable transcription models.
 
@@ -49,15 +49,15 @@ If `which uv` differs, update `uvPath` in `hammerspoon.lua`.
 Initialize config:
 
 ```bash
-cd /Users/ashish/Projects/MLX/whisper-exploration/whisper-dictation
-uv run --python 3.12 whisper-dictation init-config
-uv run --python 3.12 whisper-dictation models
+cd /Users/ashish/Projects/MLX/whisper-exploration/dictate
+uv run --python 3.12 dictate init-config
+uv run --python 3.12 dictate models
 ```
 
 The config lives at:
 
 ```text
-~/.whisper-dictation/config.json
+~/.dictate/config.json
 ```
 
 ## Current backend
@@ -78,8 +78,8 @@ git checkout pr-273
 ## Test transcription manually
 
 ```bash
-cd /Users/ashish/Projects/MLX/whisper-exploration/whisper-dictation
-uv run --python 3.12 whisper-dictation transcribe \
+cd /Users/ashish/Projects/MLX/whisper-exploration/dictate
+uv run --python 3.12 dictate transcribe \
   ../insanely-fast-whisper/test.wav \
   --model ifw_mlx_tiny
 ```
@@ -87,7 +87,7 @@ uv run --python 3.12 whisper-dictation transcribe \
 Try another model:
 
 ```bash
-uv run --python 3.12 whisper-dictation transcribe \
+uv run --python 3.12 dictate transcribe \
   ../insanely-fast-whisper/test.wav \
   --model ifw_mlx_large_v3
 ```
@@ -97,7 +97,7 @@ uv run --python 3.12 whisper-dictation transcribe \
 Add this to `~/.hammerspoon/init.lua`:
 
 ```lua
-dofile("/Users/ashish/Projects/MLX/whisper-exploration/whisper-dictation/hammerspoon.lua")
+dofile("/Users/ashish/Projects/MLX/whisper-exploration/dictate/hammerspoon.lua")
 ```
 
 Then reload Hammerspoon.
@@ -123,7 +123,7 @@ local micDevice = ":0"
 
 ## Model swapping design
 
-Models are configured in `~/.whisper-dictation/config.json`:
+Models are configured in `~/.dictate/config.json`:
 
 ```json
 {
@@ -144,7 +144,7 @@ Models are configured in `~/.whisper-dictation/config.json`:
 To test a future backend, add another backend implementation in:
 
 ```text
-src/whisper_dictation/cli.py
+src/dictate/cli.py
 ```
 
 and add a model entry with a new `backend` key.
@@ -157,7 +157,7 @@ Hammerspoon
   ├─ remembers focused app
   └─ calls Python CLI
         ↓
-whisper-dictation transcribe audio.m4a --model <key>
+dictate transcribe audio.m4a --model <key>
         ↓
 backend adapter
   ├─ insanely-fast-whisper PR #273 MLX

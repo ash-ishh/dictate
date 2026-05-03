@@ -1,4 +1,4 @@
--- Whisper Dictation Hammerspoon building block
+-- Dictate Hammerspoon building block
 -- Install this by copying or requiring it from ~/.hammerspoon/init.lua.
 -- Hotkey: Cmd+Alt+Ctrl+Space. Menu button: 🎙 / 🔴.
 
@@ -7,11 +7,11 @@ local isRecording = false
 local ffmpegTask = nil
 local targetApp = nil
 
-local projectDir = "/Users/ashish/Projects/MLX/whisper-exploration/whisper-dictation"
-local audioFile = "/tmp/whisper-dictation.m4a"
-local jsonFile = "/tmp/whisper-dictation.json"
-local txtFile = "/tmp/whisper-dictation.txt"
-local logFile = "/tmp/whisper-dictation.log"
+local projectDir = "/Users/ashish/Projects/MLX/whisper-exploration/dictate"
+local audioFile = "/tmp/dictate.m4a"
+local jsonFile = "/tmp/dictate.json"
+local txtFile = "/tmp/dictate.txt"
+local logFile = "/tmp/dictate.log"
 
 -- Change after running: ffmpeg -f avfoundation -list_devices true -i ""
 local micDevice = ":0"
@@ -52,7 +52,7 @@ local function transcribeAndPaste()
   menubar:setTitle("⏳")
   notify("Whisper", "Transcribing with " .. selectedModel .. "...")
 
-  local command = string.format([[cd "%s" && "%s" run --python 3.12 whisper-dictation transcribe "%s" --model "%s" --output-json "%s" --output-text "%s"]],
+  local command = string.format([[cd "%s" && "%s" run --python 3.12 dictate transcribe "%s" --model "%s" --output-json "%s" --output-text "%s"]],
     projectDir, uvPath, audioFile, selectedModel, jsonFile, txtFile)
 
   hs.task.new("/bin/zsh", function(exitCode, stdOut, stdErr)
@@ -124,7 +124,7 @@ local function chooseModel()
 end
 
 menubar:setTitle("🎙")
-menubar:setTooltip("Whisper Dictation")
+menubar:setTooltip("Dictate")
 menubar:setMenu({
   { title = "Start/stop recording", fn = toggleRecording },
   { title = "Choose model", fn = chooseModel },

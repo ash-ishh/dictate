@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-APP_DIR = Path.home() / ".whisper-dictation"
+APP_DIR = Path.home() / ".dictate"
 CONFIG_PATH = APP_DIR / "config.json"
 DEFAULT_IFW_REPO = Path.home() / "Projects/MLX/whisper-exploration/insanely-fast-whisper"
 
@@ -126,7 +126,7 @@ def cmd_transcribe(args: argparse.Namespace) -> int:
     model_name = args.model or config.get("default_model")
     models = config.get("models", {})
     if model_name not in models:
-        raise SystemExit(f"Unknown model '{model_name}'. Run: whisper-dictation models")
+        raise SystemExit(f"Unknown model '{model_name}'. Run: dictate models")
 
     audio = Path(args.audio).expanduser().resolve()
     if not audio.exists():
@@ -152,10 +152,10 @@ def cmd_transcribe(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="whisper-dictation")
+    parser = argparse.ArgumentParser(prog="dictate")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    p = sub.add_parser("init-config", help="Create ~/.whisper-dictation/config.json")
+    p = sub.add_parser("init-config", help="Create ~/.dictate/config.json")
     p.add_argument("--force", action="store_true", help="Overwrite existing config")
     p.set_defaults(func=cmd_init_config)
 
