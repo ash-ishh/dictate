@@ -105,6 +105,27 @@ local function rebuildMenu()
     { title = "Start/stop recording", fn = toggleRecording },
     { title = "Choose model", fn = chooseModel },
     { title = "Current model: " .. selectedModel, disabled = true },
+    { title = "-" },
+    {
+      title = "Play last recording",
+      fn = function()
+        if hs.fs.attributes(audioFile) then
+          hs.execute("open " .. string.format("%q", audioFile))
+        else
+          notify("Dictate", "No recording found")
+        end
+      end,
+    },
+    {
+      title = "Open last transcript file",
+      fn = function()
+        if hs.fs.attributes(txtFile) then
+          hs.execute("open -R " .. string.format("%q", txtFile))
+        else
+          notify("Dictate", "No transcript file found")
+        end
+      end,
+    },
   }
 
   if #transcriptHistory > 0 then
@@ -150,7 +171,7 @@ local function pasteText(text)
   text = string.gsub(text or "", "^%s+", "")
   text = string.gsub(text, "%s+$", "")
   if text == "" then
-    notify("Dictate", "Transcript was empty")
+    notify("Dictate", "Transcript was empty. Use menu → Play last recording to check audio.")
     return
   end
 
