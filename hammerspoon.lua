@@ -1,6 +1,6 @@
 -- Dictate Hammerspoon integration.
 -- Install with: dofile("/path/to/dictate/hammerspoon.lua")
--- Hotkey: Cmd+S. Menu button: D / REC.
+-- Hotkey: Cmd+S. Menu button: custom Dictate icon / REC.
 
 local menubar = hs.menubar.new()
 local isRecording = false
@@ -33,6 +33,34 @@ local uvPath = firstExistingPath({home .. "/.local/bin/uv", "/opt/homebrew/bin/u
 local selectedModel = "ifw_mlx_tiny"
 local toggleRecording
 local chooseModel
+
+local function loadIcon(fileName, template)
+  local image = hs.image.imageFromPath(projectDir .. "/assets/" .. fileName)
+  if image and template then image:setTemplate(true) end
+  return image
+end
+
+local idleIcon = loadIcon("dictate-idle.png", true)
+local recordingIcon = loadIcon("dictate-recording.png", false)
+
+local function setIdleStatus()
+  if idleIcon then
+    menubar:setIcon(idleIcon)
+    menubar:setTitle("")
+  else
+    menubar:setTitle("Dictate")
+  end
+end
+
+local function setRecordingStatus()
+  if recordingIcon then menubar:setIcon(recordingIcon) end
+  menubar:setTitle("REC")
+end
+
+local function setTranscribingStatus()
+  if idleIcon then menubar:setIcon(idleIcon) end
+  menubar:setTitle("…")
+end
 
 local function notify(title, text)
   hs.notify.new({ title = title, informativeText = text }):send()
@@ -140,14 +168,14 @@ local function pasteText(text)
 end
 
 local function transcribeAndPaste()
-  menubar:setTitle("D…")
+  setTranscribingStatus()
   notify("Dictate", "Transcribing with " .. selectedModel .. "...")
 
   local command = string.format([[cd "%s" && "%s" run --python 3.12 dictate transcribe "%s" --model "%s" --output-json "%s" --output-text "%s"]],
     projectDir, uvPath, audioFile, selectedModel, jsonFile, txtFile)
 
   hs.task.new("/bin/zsh", function(exitCode, stdOut, stdErr)
-    menubar:setTitle("D")
+    setIdleStatus()
     if exitCode == 0 then
       pasteText(readFile(txtFile) or stdOut)
     else
@@ -179,7 +207,7 @@ local function startRecording()
   ffmpegTask:start()
 
   isRecording = true
-  menubar:setTitle("REC")
+  setRecordingStatus()
   showRecordingIndicator()
   notify("Dictate", "Recording started")
 end
@@ -190,7 +218,7 @@ local function stopRecording()
     ffmpegTask = nil
   end
   isRecording = false
-  menubar:setTitle("D…")
+  setTranscribingStatus()
   hideRecordingIndicator()
   notify("Dictate", "Recording stopped")
   hs.timer.doAfter(0.7, transcribeAndPaste)
@@ -216,7 +244,7 @@ chooseModel = function()
   chooser:show()
 end
 
-menubar:setTitle("D")
+setIdleStatus()
 menubar:setTooltip("Dictate")
 rebuildMenu()
 menubar:setClickCallback(toggleRecording)

@@ -187,12 +187,14 @@ Menu bar "D" item: start/stop recording
 Menu-bar states:
 
 ```text
-D: idle
+Dictate icon: idle
 REC: recording
-D…: transcribing
+…: transcribing
 ```
 
-Recent transcripts are available from the `D` menu-bar menu. Selecting a transcript copies it back to the clipboard. Dictate keeps the last five transcripts for the current Hammerspoon session.
+The menu-bar artwork is stored in `assets/` as SVG sources plus PNG files used by Hammerspoon.
+
+Recent transcripts are available from the Dictate menu-bar menu. Selecting a transcript copies it back to the clipboard. Dictate keeps the last five transcripts for the current Hammerspoon session.
 
 Because `Cmd + S` is also the standard Save shortcut, change the binding in `hammerspoon.lua` if you do not want Dictate to intercept it globally.
 
