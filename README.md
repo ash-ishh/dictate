@@ -1,106 +1,112 @@
 # Dictate
 
-A small Mac dictation project with swappable transcription models.
+Dictate is a macOS speech-to-text utility that records from the microphone, transcribes the audio with a configurable model backend, and pastes the transcript into the app that was focused when recording started.
 
-Goal:
+The project currently provides:
 
-1. Press/click once to record.
-2. Press/click again to stop.
-3. Transcribe the recording.
-4. Paste text into the input box/app that was focused when recording started.
+- a `dictate` Python CLI for testing transcription models,
+- a Hammerspoon integration for global hotkey/menu-bar dictation,
+- a config file for swapping transcription models without changing the hotkey script.
 
-## Best hotkey option
+## Requirements
 
-For this project, the best first option is **Hammerspoon**:
+- macOS
+- Apple Silicon for MLX-backed models
+- Python 3.12 via `uv`
+- `ffmpeg`
+- Hammerspoon for the hotkey/menu-bar integration
 
-- free and scriptable,
-- can create a menu-bar button,
-- can bind global hotkeys,
-- can remember the focused app,
-- can paste back into the original input box,
-- easy to modify while developing.
-
-Recommended hotkeys:
-
-- `Cmd + Option + Ctrl + Space`: start/stop recording
-- `Cmd + Option + Ctrl + M`: choose model
-
-Alternatives later:
-
-- Keyboard Maestro: polished but paid.
-- Raycast extension: nice UI, more ceremony.
-- Native macOS menu bar app: best UX eventually, more engineering.
-
-## Setup
+Install system tools:
 
 ```bash
 brew install ffmpeg
 brew install --cask hammerspoon
 ```
 
-This project currently uses your existing `uv` at:
-
-```text
-/Users/ashish/.local/bin/uv
-```
-
-If `which uv` differs, update `uvPath` in `hammerspoon.lua`.
-
-Initialize config:
+Install `uv` if it is not already available:
 
 ```bash
-cd /Users/ashish/Projects/MLX/whisper-exploration/dictate
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+The Hammerspoon integration looks for `uv` in `~/.local/bin`, `/opt/homebrew/bin`, and `/usr/local/bin`.
+
+## Installation
+
+Clone or enter the project directory:
+
+```bash
+cd /path/to/dictate
+```
+
+Create the default config:
+
+```bash
 uv run --python 3.12 dictate init-config
+```
+
+List available configured models:
+
+```bash
 uv run --python 3.12 dictate models
 ```
 
-The config lives at:
+The user config is stored at:
 
 ```text
 ~/.dictate/config.json
 ```
 
-## Current backend
+## Transcription backend
 
-The first backend is `insanely-fast-whisper` PR #273 with MLX:
+The initial backend uses the MLX backend from `insanely-fast-whisper` PR #273.
+
+The default config expects an `insanely-fast-whisper` checkout at:
 
 ```text
-/Users/ashish/Projects/MLX/whisper-exploration/insanely-fast-whisper
+~/Projects/MLX/whisper-exploration/insanely-fast-whisper
 ```
 
-Make sure that repo is on the PR branch:
+That checkout should be on the PR branch:
 
 ```bash
-cd /Users/ashish/Projects/MLX/whisper-exploration/insanely-fast-whisper
+cd ~/Projects/MLX/whisper-exploration/insanely-fast-whisper
+git fetch origin pull/273/head:pr-273
 git checkout pr-273
 ```
 
-## Test transcription manually
+If your checkout is somewhere else, edit the `repo` fields in:
 
-```bash
-cd /Users/ashish/Projects/MLX/whisper-exploration/dictate
-uv run --python 3.12 dictate transcribe \
-  ../insanely-fast-whisper/test.wav \
-  --model ifw_mlx_tiny
+```text
+~/.dictate/config.json
 ```
 
-Try another model:
+## Manual transcription test
+
+From the Dictate project directory:
 
 ```bash
-uv run --python 3.12 dictate transcribe \
-  ../insanely-fast-whisper/test.wav \
-  --model ifw_mlx_large_v3
+uv run --python 3.12 dictate transcribe /path/to/audio.wav --model ifw_mlx_tiny
 ```
 
-## Install Hammerspoon script
+Write outputs to files:
+
+```bash
+uv run --python 3.12 dictate transcribe /path/to/audio.wav \
+  --model ifw_mlx_tiny \
+  --output-json /tmp/dictate.json \
+  --output-text /tmp/dictate.txt
+```
+
+## Hammerspoon hotkey setup
 
 Add this to `~/.hammerspoon/init.lua`:
 
 ```lua
-dofile("/Users/ashish/Projects/MLX/whisper-exploration/dictate/hammerspoon.lua")
+dofile("/path/to/dictate/hammerspoon.lua")
 ```
 
-Then reload Hammerspoon.
+Reload Hammerspoon.
 
 Grant permissions:
 
@@ -109,21 +115,39 @@ System Settings → Privacy & Security → Accessibility → Hammerspoon
 System Settings → Privacy & Security → Microphone → Hammerspoon
 ```
 
-Find mic device if recording does not work:
+Default controls:
+
+```text
+Cmd + S: start/stop recording
+Cmd + Option + Ctrl + M: choose model
+Menu bar microphone icon: start/stop recording
+```
+
+Because `Cmd + S` is also the standard Save shortcut, change the binding in `hammerspoon.lua` if you do not want Dictate to intercept it globally.
+
+## Microphone device
+
+Find available AVFoundation devices:
 
 ```bash
 ffmpeg -f avfoundation -list_devices true -i ""
 ```
 
-Then update this in `hammerspoon.lua`:
+Update this value in `hammerspoon.lua` if your microphone is not device `0`:
 
 ```lua
 local micDevice = ":0"
 ```
 
-## Model swapping design
+## Model configuration
 
-Models are configured in `~/.dictate/config.json`:
+Models are configured in:
+
+```text
+~/.dictate/config.json
+```
+
+Example:
 
 ```json
 {
@@ -132,7 +156,7 @@ Models are configured in `~/.dictate/config.json`:
   "models": {
     "ifw_mlx_tiny": {
       "backend": "insanely_fast_whisper_pr273",
-      "repo": "/Users/ashish/Projects/MLX/whisper-exploration/insanely-fast-whisper",
+      "repo": "/path/to/insanely-fast-whisper",
       "mlx_family": "whisper",
       "model_name": "mlx-community/whisper-tiny",
       "extra_args": []
@@ -141,31 +165,41 @@ Models are configured in `~/.dictate/config.json`:
 }
 ```
 
-To test a future backend, add another backend implementation in:
+Switch models from the CLI:
 
-```text
-src/dictate/cli.py
+```bash
+uv run --python 3.12 dictate transcribe /path/to/audio.wav --model ifw_mlx_large_v3
 ```
 
-and add a model entry with a new `backend` key.
+Switch models from Hammerspoon:
+
+```text
+Cmd + Option + Ctrl + M
+```
 
 ## Architecture
 
 ```text
 Hammerspoon
-  ├─ starts/stops ffmpeg recording
-  ├─ remembers focused app
-  └─ calls Python CLI
+  ├─ records microphone audio with ffmpeg
+  ├─ remembers the focused app
+  └─ calls the Dictate CLI
         ↓
-dictate transcribe audio.m4a --model <key>
+dictate transcribe <audio> --model <model-key>
         ↓
 backend adapter
   ├─ insanely-fast-whisper PR #273 MLX
-  ├─ future MLX Whisper direct backend
-  ├─ future Parakeet direct backend
-  └─ future local/remote model
+  └─ future transcription backends
         ↓
 plain transcript
         ↓
-Hammerspoon pastes into original app
+Hammerspoon pastes text into the original app
 ```
+
+To add a backend, implement it in:
+
+```text
+src/dictate/cli.py
+```
+
+Then add a model entry in `~/.dictate/config.json` with a distinct `backend` value.

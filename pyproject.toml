@@ -1,7 +1,7 @@
 [project]
 name = "dictate"
 version = "0.1.0"
-description = "Add your description here"
+description = "macOS dictation utility with swappable transcription backends"
 readme = "README.md"
 authors = [
     { name = "ashish-spext", email = "ashish@spext.co" }

@@ -1,13 +1,14 @@
--- Dictate Hammerspoon building block
--- Install this by copying or requiring it from ~/.hammerspoon/init.lua.
--- Hotkey: Cmd+Alt+Ctrl+Space. Menu button: 🎙 / 🔴.
+-- Dictate Hammerspoon integration.
+-- Install with: dofile("/path/to/dictate/hammerspoon.lua")
+-- Hotkey: Cmd+S. Menu button: 🎙 / 🔴.
 
 local menubar = hs.menubar.new()
 local isRecording = false
 local ffmpegTask = nil
 local targetApp = nil
 
-local projectDir = "/Users/ashish/Projects/MLX/whisper-exploration/dictate"
+local source = debug.getinfo(1, "S").source
+local projectDir = source:sub(1, 1) == "@" and source:sub(2):match("(.+)/[^/]+$") or "/Users/ashish/Projects/MLX/whisper-exploration/dictate"
 local audioFile = "/tmp/dictate.m4a"
 local jsonFile = "/tmp/dictate.json"
 local txtFile = "/tmp/dictate.txt"
@@ -16,8 +17,16 @@ local logFile = "/tmp/dictate.log"
 -- Change after running: ffmpeg -f avfoundation -list_devices true -i ""
 local micDevice = ":0"
 
-local ffmpegPath = "/opt/homebrew/bin/ffmpeg"
-local uvPath = "/Users/ashish/.local/bin/uv"
+local function firstExistingPath(paths)
+  for _, path in ipairs(paths) do
+    if path and hs.fs.attributes(path) then return path end
+  end
+  return paths[1]
+end
+
+local home = os.getenv("HOME") or ""
+local ffmpegPath = firstExistingPath({"/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"})
+local uvPath = firstExistingPath({home .. "/.local/bin/uv", "/opt/homebrew/bin/uv", "/usr/local/bin/uv"})
 local selectedModel = "ifw_mlx_tiny"
 
 local function notify(title, text)
@@ -132,5 +141,5 @@ menubar:setMenu({
 })
 menubar:setClickCallback(toggleRecording)
 
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "space", toggleRecording)
+hs.hotkey.bind({"cmd"}, "S", toggleRecording)
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", chooseModel)
