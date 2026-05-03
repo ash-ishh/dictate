@@ -180,8 +180,8 @@ Dictate stops recording, hides the indicator, transcribes the audio, and pastes 
 Other controls:
 
 ```text
-Cmd + Option + Ctrl + M: choose model
-Menu bar "D" item: start/stop recording
+Cmd + Option + Ctrl + M: cycle model
+Menu bar icon: start/stop recording
 ```
 
 Menu-bar states:
@@ -192,6 +192,8 @@ Red record icon: recording
 ```
 
 The menu-bar artwork is stored in `assets/` as SVG sources, vector PDF menu-bar assets, and high-resolution PNG fallbacks. Hammerspoon uses the PDF assets scaled to native menu-bar size for sharper rendering.
+
+Model selection is available directly in the menu-bar menu. The current model is marked with `✓`.
 
 Recent transcripts are available from the Dictate menu-bar menu. Selecting a transcript copies it back to the clipboard. Dictate keeps the last five transcripts for the current Hammerspoon session.
 
@@ -246,7 +248,7 @@ uv run --python 3.12 dictate transcribe /path/to/audio.wav --model ifw_mlx_large
 Switch models from Hammerspoon:
 
 ```text
-Cmd + Option + Ctrl + M
+Click the menu-bar icon and select a model, or press Cmd + Option + Ctrl + M to cycle models.
 ```
 
 ## Architecture

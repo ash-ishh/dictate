@@ -32,8 +32,15 @@ local home = os.getenv("HOME") or ""
 local ffmpegPath = firstExistingPath({"/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"})
 local uvPath = firstExistingPath({home .. "/.local/bin/uv", "/opt/homebrew/bin/uv", "/usr/local/bin/uv"})
 local selectedModel = "ifw_mlx_tiny"
+local modelOptions = {
+  { key = "ifw_mlx_tiny", label = "Tiny", detail = "fastest" },
+  { key = "ifw_mlx_large_v3", label = "Large v3", detail = "best accuracy" },
+  { key = "ifw_mlx_turbo", label = "Turbo", detail = "fast large" },
+  { key = "ifw_mlx_parakeet", label = "Parakeet", detail = "experimental" },
+}
 local toggleRecording
 local chooseModel
+local selectModel
 
 local idleIconPath = projectDir .. "/assets/dictate-idle.png"
 local recordingIconPath = projectDir .. "/assets/dictate-recording.png"
@@ -102,31 +109,40 @@ end
 
 local function rebuildMenu()
   local menu = {
-    { title = "Start/stop recording", fn = toggleRecording },
-    { title = "Choose model", fn = chooseModel },
-    { title = "Current model: " .. selectedModel, disabled = true },
+    { title = "Record / Stop", fn = toggleRecording },
     { title = "-" },
-    {
-      title = "Play last recording",
-      fn = function()
-        if hs.fs.attributes(audioFile) then
-          hs.execute("open " .. string.format("%q", audioFile))
-        else
-          notify("Dictate", "No recording found")
-        end
-      end,
-    },
-    {
-      title = "Open last transcript file",
-      fn = function()
-        if hs.fs.attributes(txtFile) then
-          hs.execute("open -R " .. string.format("%q", txtFile))
-        else
-          notify("Dictate", "No transcript file found")
-        end
-      end,
-    },
+    { title = "Model", disabled = true },
   }
+
+  for _, model in ipairs(modelOptions) do
+    local active = model.key == selectedModel
+    table.insert(menu, {
+      title = (active and "✓ " or "   ") .. model.label .. " — " .. model.detail,
+      fn = function() selectModel(model.key) end,
+    })
+  end
+
+  table.insert(menu, { title = "-" })
+  table.insert(menu, {
+    title = "Play last recording",
+    fn = function()
+      if hs.fs.attributes(audioFile) then
+        hs.execute("open " .. string.format("%q", audioFile))
+      else
+        notify("Dictate", "No recording found")
+      end
+    end,
+  })
+  table.insert(menu, {
+    title = "Reveal transcript file",
+    fn = function()
+      if hs.fs.attributes(txtFile) then
+        hs.execute("open -R " .. string.format("%q", txtFile))
+      else
+        notify("Dictate", "No transcript file found")
+      end
+    end,
+  })
 
   if #transcriptHistory > 0 then
     table.insert(menu, { title = "-" })
@@ -246,23 +262,28 @@ toggleRecording = function()
   if isRecording then stopRecording() else startRecording() end
 end
 
+local function modelLabel(key)
+  for _, model in ipairs(modelOptions) do
+    if model.key == key then return model.label end
+  end
+  return key
+end
+
+selectModel = function(key)
+  selectedModel = key
+  rebuildMenu()
+  hs.alert.show("Model: " .. modelLabel(key), 0.8)
+end
+
 chooseModel = function()
-  local choices = {
-    {text = "ifw_mlx_tiny", subText = selectedModel == "ifw_mlx_tiny" and "✓ Fastest first test" or "Fastest first test"},
-    {text = "ifw_mlx_large_v3", subText = selectedModel == "ifw_mlx_large_v3" and "✓ More accurate Whisper Large v3" or "More accurate Whisper Large v3"},
-    {text = "ifw_mlx_turbo", subText = selectedModel == "ifw_mlx_turbo" and "✓ Faster Large v3 Turbo" or "Faster Large v3 Turbo"},
-    {text = "ifw_mlx_parakeet", subText = selectedModel == "ifw_mlx_parakeet" and "✓ Parakeet MLX" or "Parakeet MLX"},
-  }
-  local chooser = hs.chooser.new(function(choice)
-    if choice then
-      selectedModel = choice.text
-      rebuildMenu()
-      notify("Dictate", "Selected " .. selectedModel)
-      hs.alert.show("Dictate model: " .. selectedModel)
+  for index, model in ipairs(modelOptions) do
+    if model.key == selectedModel then
+      local nextModel = modelOptions[(index % #modelOptions) + 1]
+      selectModel(nextModel.key)
+      return
     end
-  end)
-  chooser:choices(choices)
-  chooser:show()
+  end
+  selectModel(modelOptions[1].key)
 end
 
 setIdleStatus()
